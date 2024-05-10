@@ -8,7 +8,6 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 db.init_app(app)
 
-
 @app.route("/")
 def home():
     return "<p>Youtube to MP3 API</p>"
@@ -39,7 +38,7 @@ def download_video():
                 "date": youtube_data['publish_date'],
                 "link": link,
                 "thumbnail_link": youtube_data['tb_link'],
-                "download_link": converter_data
+                "download_link": converter_data['download_url']
             }
         )
     

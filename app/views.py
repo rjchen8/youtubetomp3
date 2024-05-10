@@ -22,7 +22,7 @@ def getDownloadLink(link):
     
     response = requests.post("https://youtube-to-mp315.p.rapidapi.com/download", json={}, headers=headers, params=params)
     
-    return {'download_url': response.json().downloadUrl, 'id': response.json().id}
+    return {'download_url': response.json()['downloadUrl'], 'id': response.json()['id']}
 
 
 def getVideoInfo(link):
