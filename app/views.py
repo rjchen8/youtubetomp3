@@ -25,6 +25,19 @@ def getDownloadLink(link):
     return {'download_url': response.json()['downloadUrl'], 'id': response.json()['id']}
 
 
+def getDownloadStatus(id):
+    headers = {
+	    "X-RapidAPI-Key": rapidapi_key,
+	    "X-RapidAPI-Host": "youtube-to-mp315.p.rapidapi.com"
+    }
+
+    url = f"https://youtube-to-mp315.p.rapidapi.com/status/{id}"
+
+    response = requests.get(url, headers=headers)
+
+    return {'status': response.json()['status']}
+
+
 def getVideoInfo(link):
     video_id = link.split('watch?v=')[1]
     
