@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify
 from views import getDownloadLink, getVideoInfo, getDownloadStatus
 from db import db, db_url
 from models import Videos
+from flask_cors import CORS
 
 app = Flask(__name__)
+cors = CORS(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 db.init_app(app)
@@ -13,7 +15,7 @@ def home():
     return "<p>Youtube to MP3 API</p>"
 
 
-@app.route("/api/", methods=["GET"])
+@app.route("/api", methods=["GET"])
 def get_videos():
     video_objects = Videos.query.filter_by().all()
     videos = []
@@ -33,7 +35,7 @@ def get_videos():
 @app.route("/api/download", methods=["POST"])
 def download_video():
     data = request.json
-    link = data.get("link")
+    link = data['link']['_value']
 
     if link:
         converter_data = getDownloadLink(link)
