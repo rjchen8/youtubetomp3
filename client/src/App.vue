@@ -1,16 +1,36 @@
 <script setup lang="ts">
 import { ref, Ref } from "vue"
-import axios from "axios";
+import axios from "axios"
+import VideoType from "./model"
+import Video from "./components/Video.vue"
 
 const link: Ref<string> = ref("")
-const videos: Ref<string[]> = ref([])
+const videos: Ref<VideoType[]> = ref([])
+const status: Ref<Boolean> = ref(false)
 
 const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    const response = await axios.post("http://localhost:5000/api/download", {"link": link})
-    const data = response.data[0]
-    videos.value.push(data)
+    const videoResponse = await axios.post("http://localhost:5000/api/download", {"link": link})
+    const videoData = videoResponse.data[0]
+
+    videos.value.unshift(videoData)
+    link.value = ""
+
+    while (!status.value) {
+        checkStatus(videoData.id)
+        await new Promise<void>(resolve => setTimeout(resolve, 7000));
+    }  
+
 }
+
+const checkStatus = async (id: string) => {
+    const statusResponse = await axios.get(`http://localhost:5000/api/download/${id}`)
+
+    if (statusResponse.data[0].status == "AVAILABLE") {
+        status.value = true
+    }
+}
+
 </script>
 
 <template>
@@ -22,6 +42,13 @@ const handleSubmit = async (e: Event) => {
             <input id="input-field" type="text" placeholder="https://www.youtube.com/watch?v=6hBDh3dRvLc" v-model="link">
             <button id="submit-button" type="submit">convert! ►</button>
         </form>
+
+        <Video 
+            v-for="video in videos"
+            :video="video"
+            :status="status"
+            :key="video.id"
+        />
 
     </div>
 </template>
@@ -77,5 +104,5 @@ const handleSubmit = async (e: Event) => {
         border-color: white;
         color: white;
     }
-    
+
 </style>
