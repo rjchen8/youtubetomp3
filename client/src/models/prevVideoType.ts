@@ -1,6 +1,5 @@
-export default interface Video {
+export default interface PrevVideoType {
     date: Date
-    download_link: string
     id: string
     link: string
     thumbnail_link: string

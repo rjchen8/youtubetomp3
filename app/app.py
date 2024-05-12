@@ -35,7 +35,7 @@ def get_videos():
 @app.route("/api/download", methods=["POST"])
 def download_video():
     data = request.json
-    link = data['link']['_value']
+    link = data['link']
 
     if link:
         converter_data = getDownloadLink(link)
@@ -58,7 +58,8 @@ def download_video():
                 "date": youtube_data['publish_date'],
                 "link": link,
                 "thumbnail_link": youtube_data['tb_link'],
-                "download_link": converter_data['download_url']
+                "download_link": converter_data['download_url'],
+                "status": "CONVERTING"
             }, 201
         )
     

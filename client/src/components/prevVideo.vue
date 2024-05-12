@@ -1,33 +1,28 @@
 <script setup lang="ts">
 import axios from "axios";
-import Video from "../models/VideoType"
+import prevVideoType from "../models/prevVideoType"
 
 defineProps<{
-    video: Video
-    status: string
+    prevVideo: prevVideoType
 }>()
 
-const emits = defineEmits(['delete-video']);
+const emits = defineEmits(['refetch-video']);
 
-const handleDelete = async (id: string) => {
+const handleRefetch = async (id: string, link: string) => {
     await axios.delete(`http://localhost:5000/api/download/${id}`)
-    emits('delete-video', id);
+    emits('refetch-video', id, link);
 }
 </script>
 
 <template>
     <div class="vid-container">
-        <img :src="video.thumbnail_link" width="240" height="180">
+        <img :src="prevVideo.thumbnail_link" width="240" height="180">
             <div class="vid-info">
-                <p class="title">{{ video.title }}</p>
-                <p>Upload Date: {{ new Date(video.date).toLocaleDateString() }}</p>
-                <a :href="video.link">YouTube Link</a>
+                <p class="title">{{ prevVideo.title }}</p>
+                <p>Upload Date: {{ new Date(prevVideo.date).toLocaleDateString() }}</p>
+                <a :href="prevVideo.link">YouTube Link</a>
                 <div class="audio-button">
-                    <span class="status" v-if="status!=='AVAILABLE'">STATUS: Converting</span>
-                    <audio v-else controls class="audio">
-                        <source :src="video.download_link" type="audio/mp3">
-                    </audio>
-                    <button class="delete" @click="handleDelete(video.id)">🗑️ Delete</button>
+                    <button class="refetch" @click="handleRefetch(prevVideo.id, prevVideo.link)">🔄 Refetch</button>
                 </div>
             </div>
     </div>
@@ -57,10 +52,10 @@ const handleDelete = async (id: string) => {
         font-weight: 500;
     }
 
-    .delete {
+    .refetch {
         color: white;
         cursor: pointer;
-        background-color: #DC4C64;
+        background-color:rgb(0, 118, 0);
         border: none;
         border-width: 1px;
         border-radius: 4px;

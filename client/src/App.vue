@@ -1,36 +1,67 @@
 <script setup lang="ts">
 import { ref, Ref } from "vue"
 import axios from "axios"
-import VideoType from "./model"
+import VideoType from "./models/VideoType"
+import PrevVideoType from "./models/prevVideoType"
 import Video from "./components/Video.vue"
+import PrevVideo from "./components/prevVideo.vue"
 
 const link: Ref<string> = ref("")
 const videos: Ref<VideoType[]> = ref([])
-const status: Ref<Boolean> = ref(false)
+const prevVideos: Ref<PrevVideoType[]> = ref([])
 
 const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    const videoResponse = await axios.post("http://localhost:5000/api/download", {"link": link})
+    const videoResponse = await axios.post("http://localhost:5000/api/download", {"link": link.value})
     const videoData = videoResponse.data[0]
 
     videos.value.unshift(videoData)
     link.value = ""
 
-    while (!status.value) {
-        checkStatus(videoData.id)
-        await new Promise<void>(resolve => setTimeout(resolve, 7000));
-    }  
-
+    while (videoData.status !== "AVAILABLE") {
+        await checkStatus(videoData.id)
+        await new Promise<void>(resolve => setTimeout(resolve, 10000));
+    }
 }
 
 const checkStatus = async (id: string) => {
     const statusResponse = await axios.get(`http://localhost:5000/api/download/${id}`)
 
     if (statusResponse.data[0].status == "AVAILABLE") {
-        status.value = true
+        videos.value.map((video) => {
+            if (video.id == id) {
+                video.status = "AVAILABLE"
+            }
+        })
     }
 }
 
+const deleteVideo = (id: string) => {
+    videos.value = videos.value.filter(video => video.id !== id);
+}
+
+const refetchVideo = async (id: string, link: string) => {
+    prevVideos.value = prevVideos.value.filter(prevVideo => prevVideo.id !== id)
+    console.log(link)
+    const videoResponse = await axios.post("http://localhost:5000/api/download", {"link": link})
+    const videoData = videoResponse.data[0]
+
+    videos.value.unshift(videoData)
+
+    while (videoData.status !== "AVAILABLE") {
+        await checkStatus(videoData.id)
+        await new Promise<void>(resolve => setTimeout(resolve, 10000));
+    }
+}
+
+const fetchData = async () => {
+    const response = await axios.get("http://localhost:5000/api")
+    const data = response.data[0]
+    prevVideos.value = data
+
+}
+
+fetchData()
 </script>
 
 <template>
@@ -46,8 +77,17 @@ const checkStatus = async (id: string) => {
         <Video 
             v-for="video in videos"
             :video="video"
-            :status="status"
+            :status="video.status"
             :key="video.id"
+            @delete-video="deleteVideo"
+        />
+
+        <h1>Below are videos you've converted previously:</h1>
+
+        <PrevVideo
+            v-for="prevVideo in prevVideos"
+            :prevVideo="prevVideo"
+            @refetch-video="refetchVideo"
         />
 
     </div>
@@ -103,6 +143,11 @@ const checkStatus = async (id: string) => {
         border-radius: 8px;
         border-color: white;
         color: white;
+    }
+    
+    h1 {
+        font-weight: 500;
+        margin-top: 5%;
     }
 
 </style>
